@@ -39,6 +39,7 @@ jobs:
       - name: Verify production artifacts
         run: |
           test "$(docker run --rm --entrypoint node lingxing-mcp:ci -e 'process.stdout.write(String(process.getuid()))')" = "1000"
+          cp deploy/.env.example deploy/.env
           cp deploy/role-mapping.example.json deploy/role-mapping.json
           docker compose -f deploy/compose.yaml config --quiet
           docker run --rm \
