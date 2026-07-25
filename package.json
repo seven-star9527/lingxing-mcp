@@ -1,0 +1,32 @@
+{
+  "name": "@seven-star9527/lingxing-mcp",
+  "version": "0.1.0",
+  "description": "支持个人账号权限隔离的领星 OpenAPI Streamable HTTP MCP Server",
+  "type": "module",
+  "main": "src/server.js",
+  "bin": {
+    "lingxing-mcp": "src/server.js",
+    "lingxing-mcp-admin": "src/admin-cli.js"
+  },
+  "engines": {
+    "node": ">=22.5"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "admin": "node src/admin-cli.js",
+    "catalog:build": "node scripts/build-catalog.js",
+    "catalog:update": "node scripts/update-catalog.js",
+    "test": "node --test",
+    "test:coverage": "node --test --experimental-test-coverage",
+    "check": "node --check src/server.js && node --check src/mcp.js && node --check src/lingxing-client.js && node --check src/admin-cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.29.0",
+    "express": "5.2.1",
+    "zod": "4.4.3"
+  },
+  "overrides": {
+    "@hono/node-server": "2.0.11"
+  },
+  "license": "MIT"
+}

@@ -1,0 +1,55 @@
+name: Update Lingxing API catalog
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "23 2 * * 1"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - name: Verify secret is configured
+        env:
+          LINGXING_DOC_ACCESS: ${{ secrets.LINGXING_DOC_ACCESS }}
+        run: |
+          if [ -z "$LINGXING_DOC_ACCESS" ]; then
+            echo "::error::Repository secret LINGXING_DOC_ACCESS is not configured"
+            exit 1
+          fi
+      - run: npm run catalog:update
+        env:
+          LINGXING_DOC_ACCESS: ${{ secrets.LINGXING_DOC_ACCESS }}
+      - run: npm test
+      - name: Open catalog update pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- catalog/endpoints.json catalog/changes.json; then
+            echo "No catalog changes"
+            exit 0
+          fi
+          branch="automation/catalog-update-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add catalog/endpoints.json catalog/changes.json
+          git commit -m "catalog: update Lingxing OpenAPI snapshot"
+          git push origin "$branch"
+          gh pr create \
+            --base main \
+            --head "$branch" \
+            --title "catalog: update Lingxing OpenAPI snapshot" \
+            --body "Automated full-snapshot update. Review operation and scope classification before merging."

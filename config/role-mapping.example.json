@@ -1,0 +1,34 @@
+{
+  "roles": {
+    "销售专员": [
+      {
+        "module": "basic",
+        "access": "read"
+      },
+      {
+        "module": "sales",
+        "access": "read"
+      }
+    ],
+    "仓库主管": [
+      {
+        "module": "basic",
+        "access": "read"
+      },
+      {
+        "module": "warehouse",
+        "access": "read"
+      },
+      {
+        "module": "warehouse",
+        "access": "write"
+      }
+    ],
+    "财务专员": [
+      {
+        "module": "finance",
+        "access": "read"
+      }
+    ]
+  }
+}

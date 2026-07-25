@@ -1,0 +1,77 @@
+services:
+  lingxing-mcp:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    image: lingxing-mcp:${LINGXING_MCP_VERSION:-0.1.0}
+    restart: unless-stopped
+    stop_grace_period: 45s
+    env_file:
+      - .env
+    environment:
+      LINGXING_MCP_HOST: 0.0.0.0
+      LINGXING_MCP_PORT: 8099
+      LINGXING_MCP_DATA_DIR: /data
+      LINGXING_MCP_DB_PATH: /data/access.sqlite
+      LINGXING_CATALOG_FILE: /app/catalog/endpoints.json
+      LINGXING_CHANGES_FILE: /app/catalog/changes.json
+    expose:
+      - "8099"
+    volumes:
+      - ./data:/data
+      - ./role-mapping.json:/config/role-mapping.json:ro
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,noexec,nosuid
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    mem_limit: 512m
+    cpus: 2
+    pids_limit: 200
+    logging:
+      options:
+        max-size: 10m
+        max-file: "5"
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - fetch('http://127.0.0.1:8099/healthz').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  caddy:
+    image: caddy:2.10.2-alpine
+    restart: unless-stopped
+    depends_on:
+      lingxing-mcp:
+        condition: service_healthy
+    environment:
+      MCP_DOMAIN: ${MCP_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      options:
+        max-size: 10m
+        max-file: "5"
+
+volumes:
+  caddy_data:
+  caddy_config:

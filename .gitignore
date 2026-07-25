@@ -1,0 +1,10 @@
+node_modules/
+.env
+data/
+deploy/role-mapping.json
+coverage/
+*.log
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+.DS_Store
